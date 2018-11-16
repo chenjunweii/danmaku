@@ -1,0 +1,7 @@
+*pyc
+dataset/
+cache/
+Danmaku
+*.bak
+__pycache__
+kts
