@@ -17,21 +17,18 @@ def preprocess_list(seq_list, scr_list, bd_list = None, sr = sr):
 
     return pseq_list, pscr_list
 
-@ log(verbose = verbose)
 def get_positions(nframes, sr = sr):
 
     n = nframes - nframes % sr 
 
     return np.array([i * sr for i in range(math.ceil(nframes / sr))])
 
-@ log(verbose = verbose)
 def unprocess_list(scr_list, sr):
 
     oscr_list = []
 
     return oscr_list
 
-@ log(verbose = verbose)
 def preprocess(seq, scr = None, boundary = None, sr = sr, m = 'avg'):
 
     olen = len(seq)

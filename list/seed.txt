@@ -1,29 +1,14 @@
+# country : cn
+# episodes : 48
+
 av9483138
 
 # bangumi
 
-ep39916
-ep39917
-ep39918
-ep39919
-ep39920
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
-ep39932
+ep39916 - ep39940
 
+ep103748 - ep103771
 
+# exclude
 
+ep39931

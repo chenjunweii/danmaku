@@ -1,6 +1,7 @@
 import argparse
 import mxnet as mx
 from data import data
+from data.preprocess import preprocess_list
 from config import train, verbose
 
 parser = argparse.ArgumentParser(description = '')
@@ -15,4 +16,28 @@ train.config['dataset'] = args.d
 
 data = data.data(**train.config)
 
-data.next()
+seq, scr = data.next()
+
+seq, scr = preprocess_list(seq, scr)
+
+nds = dict()
+
+nps = dict()
+
+lr = args.LR
+
+device = mx.gpu(args.gpu)
+
+wave = WaveArch()
+
+cfg = None
+
+net, spec = build(arch, nhidden, nds, args.batch, device, 'train', args.datatype, wave = wave)
+
+if arch != 'gan':
+    net.collect_params().initialize(mx.init.Xavier(), ctx = device)
+    #net.collect_params().initialize(mx.init.MSRAPrelu(), ctx = device)
+else:
+    net.initialize(mx.init.MSRAPrelu(), ctx = device)
+
+

@@ -14,7 +14,7 @@ config['sr'] = 15 # sub-sampling rate
 config['force'] = True # Force Re-Generate Cache
 config['boundary'] = 'hecate'
 config['verbose'] = True
-config['fcheck'] = True # true force re-check cache, info
+config['fcheck'] = False # true force re-check cache, info
 config['fextract'] = False # true => force re-extract feature
 # initialize
 

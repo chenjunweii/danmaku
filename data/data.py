@@ -53,12 +53,11 @@ class data(object):
         self.sequence[mode] = []; self.nframes[mode] = []; self.score[mode] = []
         with h5py.File(self.path['cache'], 'r') as h5:
             for k in self.info:
-                print(k)
-                print(list(self.info.keys()))
-                self.sequence[mode].append(h5[k]['features'][...])
-                self.nframes[mode].append(self.info[k].nframes)
-                self.score[mode].append(np.expand_dims(self.info[k].score, 1))
-                self.check(self.sequence[mode][-1], self.score[mode][-1])
+                if 'av' in k or 'ep' in k:
+                    self.sequence[mode].append(h5[k]['features'][...])
+                    self.nframes[mode].append(self.info[k].nframes)
+                    self.score[mode].append(np.expand_dims(self.info[k].score, 1))
+                    self.check(self.sequence[mode][-1], self.score[mode][-1])
 
     def shuffle(self):
         l = list(zip(self.sequence['train'], self.score['train']))
