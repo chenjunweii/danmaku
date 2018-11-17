@@ -1,13 +1,13 @@
 import mxnet as mx
 import numpy as np
 from random import choice
-from network import ce, mse
 from mxnet.gluon import nn, Block, rnn, contrib
 from mxnet import nd, autograd
 from mxnet.ndarray.random import *
 
 from .d3 import D3
 from .d2 import D2
+from .network import ce, mse
 from .Discriminator import Discriminator
 from .srnn import srnn, desrnn, endsrnn
 from .wave2d import *

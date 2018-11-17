@@ -16,6 +16,10 @@ config['boundary'] = 'hecate'
 config['verbose'] = True
 config['fcheck'] = False # true force re-check cache, info
 config['fextract'] = False # true => force re-extract feature
+config['nhidden'] = 256
+config['feature'] = 1024
+config['lr_decay_step'] = 250
+config['lr_decay_rate'] = 0.9
 # initialize
 
 config['epoch'] = 0

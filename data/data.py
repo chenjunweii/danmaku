@@ -52,7 +52,10 @@ class data(object):
     def load(self, mode):
         self.sequence[mode] = []; self.nframes[mode] = []; self.score[mode] = []
         with h5py.File(self.path['cache'], 'r') as h5:
-            for k in self.info:
+            if mode not in self.info:
+                print('[!] Dataset {} have not splitted yet')
+                self.info = split_dataset(self.info)
+            for k in self.info[mode]:
                 if 'av' in k or 'ep' in k:
                     self.sequence[mode].append(h5[k]['features'][...])
                     self.nframes[mode].append(self.info[k].nframes)
@@ -88,7 +91,7 @@ class data(object):
             data_list, attr = download_list(data_txt, self.path['video'], self.ext)
             if attr['country'] == 'cn':
                 self.info = load_pickle(self.path['info'])
-            self.info[mode] = data_list
+            #self.info[mode] = data_list
             ndata = len(data_list)
             for i, aid in enumerate(data_list):
                 g = h5.create_group(aid) if aid not in keys else h5[aid]

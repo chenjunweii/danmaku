@@ -1,7 +1,8 @@
+from .network import lstm, birnn
+from .block3d import D3
+from .Gan import Gan
 
-
-
-def build(arch, nhidden, nds, nbatch, device, mode, datatype, wave = None, lr = None, lr_scheduler = None):
+def build(arch, nbatch, feature, device, mode, nhidden = None, nds = None):
 
     print('[*] Build {}'.format(arch))
 
@@ -15,15 +16,15 @@ def build(arch, nhidden, nds, nbatch, device, mode, datatype, wave = None, lr = 
 
     elif arch == 'bilstm2':
 
-        net = BILSTM(feature_size, nhidden[0])
+        net = BILSTM(feature, nhidden[0])
 
     elif arch == 'd2':
 
-        net = D2('x', 2, feature_size, connection = 'dense')
+        net = D2('x', 2, feature, connection = 'dense')
     
     elif arch == 'd3':
 
-        net = D3('x', 2, feature_size, connection = 'dense')
+        net = D3('x', 2, feature, connection = 'dense')
 
     elif arch == 'gan':
 
@@ -39,7 +40,7 @@ def build(arch, nhidden, nds, nbatch, device, mode, datatype, wave = None, lr = 
                 'dilation' : [[1, 1], [1, 1], [1, 1], [1,1], [1,1]],
                 'padding' : [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
                 'device' : device,
-                'feature' : feature_size,
+                'feature' : feature,
                 'auto' : False,
                 'flatten' : False,
                 'norm' : True,
@@ -55,7 +56,7 @@ def build(arch, nhidden, nds, nbatch, device, mode, datatype, wave = None, lr = 
                 'dilation' : [[1, 1], [1, 1], [1, 1], [1,1], [1,1]],
                 'padding' : [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
                 'device' : device,
-                'feature' : feature_size,
+                'feature' : feature,
                 'auto' : False,
                 'flatten' : False,
                 'norm' : True,
@@ -69,7 +70,7 @@ def build(arch, nhidden, nds, nbatch, device, mode, datatype, wave = None, lr = 
               'layers' : layers,
               'dilation' : dilation,
               'device' : device,
-              'feature' : feature_size,
+              'feature' : feature,
               'auto' : False,
               'flatten' : False,
               'norm' : True,
@@ -83,7 +84,7 @@ def build(arch, nhidden, nds, nbatch, device, mode, datatype, wave = None, lr = 
               'layers' : 3,
               'dilation' : dilation,
               'device' : device,
-              'feature' : feature_size,
+              'feature' : feature,
               'auto' : False,
               'flatten' : False,
               'norm' : True,
@@ -98,7 +99,7 @@ def build(arch, nhidden, nds, nbatch, device, mode, datatype, wave = None, lr = 
                 'dilation' : [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
                 'padding' : [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
                 'device' : device,
-                'feature' : feature_size,
+                'feature' : feature,
                 'auto' : False,
                 'flatten' : False,
                 'norm' : True,
@@ -114,4 +115,4 @@ def build(arch, nhidden, nds, nbatch, device, mode, datatype, wave = None, lr = 
 
         raise ValueError('[!] Architecture is not supported')
 
-    return net, arch
+    return net
