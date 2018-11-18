@@ -37,38 +37,69 @@ aids, attr = download_list(os.path.join('list', args.d + '.txt'), os.path.join(a
 
 print('[*] Video Download Finished')
 
-infos = dict()
+filename = os.path.join(args.o, args.d, '{}.info'.format(args.d))
 
+infos = load_pickle(filename) if os.path.isfile(filename) else dict()
+
+page = 1
+
+item = 0
+
+# try to load last state
 for aid in aids:
     extra = dict()
-    if 'ep' in aid:
-        epid = aid
-        aid = attr['aid']
-        fn = os.path.join(args.o, args.d, 'video', '{}.{}'.format(epid, args.f))
-        page = int(epid[2:]) - int(attr['base'][2:]) + 1
-        info = GetVideoInfo(aid.strip('av'), key, 1)
+    if aid in infos:
+        if infos[aid].complete:
+            continue
     else:
-        fn = os.path.join(args.o, args.d, 'video', '{}.{}'.format(aid, args.f))
-        info = GetVideoInfo(aid.strip('av'), key)
-    extra['danmaku'] = request_danmaku(cid = info.cid)
-    if 'country' in attr:
-        extra['country'] = attr['country']
-        extra['complete'] = False
-    else:
-        capture = get_capture(fn)
-        print('[*] Capture : {}'.format(fn))
-        extra['duration'] = get_duration(capture = capture)
-        extra['duration'] = get_duration(capture = capture)
-        extra['nframes'] = get_nframes(capture = capture)
-        extra['fps'] = get_fps(capture = capture)
-        extra['boundary'] = get_boundary(fn, capture, extra['nframes'], 'hecate')
-        extra['positions'] = get_positions(extra['nframes'])
-        extra['fpsegment'] = get_fpsegment(extra['boundary'])
-        extra['score'] = get_score(**extra)
-        extra['summary'] = get_summary(**extra)
-        extra['complete'] = True
-    for k, v in extra.items():
-        setattr(info, k, v)
-    infos[aid] = info
-save_pickle(infos, '{}.info'.format(args.d))
+        if 'ep' in aid:
+            epid = aid
+            aid = attr['aid']
+            fn = os.path.join(args.o, args.d, 'video', '{}.{}'.format(epid, args.f))
+            page = int(epid[2:]) - int(attr['base'][2:]) + 1
+            print('[*] Requesting Danmaku For Episodes ', page)
+            info = GetVideoInfo(aid.strip('av'), key, page)
+            #page += 1
+        else:
+            fn = os.path.join(args.o, args.d, 'video', '{}.{}'.format(aid, args.f))
+            info = GetVideoInfo(aid.strip('av'), key)
+        extra['danmaku'], extra['content'] = request_danmaku(cid = info.cid)
+        if 'country' in attr:
+            extra['country'] = attr['country']
+            extra['complete'] = False
+        else:
+            capture = get_capture(fn)
+            print('[*] Capture : {}'.format(fn))
+            extra['duration'] = get_duration(capture = capture)
+            extra['nframes'] = get_nframes(capture = capture)
+            extra['fps'] = get_fps(capture = capture)
+            extra['boundary'] = None #get_boundary(fn, capture, extra['nframes'], 'hecate')
+            extra['positions'] = None #get_positions(extra['nframes'])
+            extra['fpsegment'] = None #get_fpsegment(extra['boundary'])
+            extra['score'] = None #get_score(**extra)
+            extra['summary'] = None #get_summary(**extra)
+            extra['complete'] = True
+            print(extra['danmaku'][0 : 20])
+            print(extra['content'][0 : 20])
+            print(len(extra['danmaku']))
+            print('page : ', page)
+        for k, v in extra.items():
+            setattr(info, k, v)
+
+        if 'episodes' in attr:
+            infos[epid] = info
+        else:
+            infos[aid] = info
+        
+        item += 1
+
+        if item % 10 == 0:
+
+            save_pickle(infos, filename)
+
+            print('[*] Info CheckPoint is save to ', filename)
+
+save_pickle(infos, filename)
+
+print('[*] Info is save to ', filename)
 

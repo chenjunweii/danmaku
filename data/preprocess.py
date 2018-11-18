@@ -5,6 +5,46 @@ from config import verbose
 
 sr = 15
 
+def pad(seqlist, olen):
+
+    # seqlist => batch major
+
+    mlen = max(olen)
+
+    nhidden = seqlist[0].shape[-1]
+
+    for i in range(len(seqlist)):
+
+        padding = np.zeros((mlen - olen[i], nhidden))
+
+        seqlist[i] = np.vstack((seqlist[i], padding))
+
+    return np.array(seqlist, dtype = np.float32)
+
+def loss_mask(batch, olen):
+
+    mask = np.zeros([batch, max(olen), 1]) # batch major
+
+    active = sum(olen)
+    
+    for b in range(batch):
+        
+        mask[b, : olen[b] - 1] = 1
+
+    return mask.swapaxes(0,1), active # time major
+
+def unpad(seqnd, olen):
+
+    seqlist = []
+
+    batch_major_tensor = np.swapaxes(seqnd.asnumpy(), 0, 1)
+
+    for i in range(len(olen)):
+
+        seqlist.append(batch_major_tensor[:olen[i]])
+
+    return seqlist
+
 def preprocess_list(seq_list, scr_list, bd_list = None, sr = sr):
 
     pseq_list = []; pscr_list = [];

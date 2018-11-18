@@ -150,7 +150,7 @@ def download_list(txt, directory, ext = '.mp4', **cookie):
 
         count = len(os.listdir(directory))
 
-        assert(count == attr['episodes'])
+        assert(count >= attr['episodes'])
 
     return ids, attr
     

@@ -22,5 +22,3 @@ for k, v in vars(args).items():
 s = vs(**train.config)
 
 s.Train()
-
-s.Init()

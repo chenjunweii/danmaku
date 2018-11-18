@@ -1,11 +1,13 @@
-import shuffle
+from random import shuffle
 from .utils import load_pickle, save_pickle
 
-def split_dataset(filename, proportion):
+def split_dataset(f, filename = None, proportion = 0.8):
 
-    infos = load_pickle(filename) if isinstance(filename, str) else filename
+    infos = load_pickle(f) if isinstance(f, str) else f
 
-    keys = list(infos.keys)
+    filename = f if isinstance(f, str) else filename
+
+    keys = list(infos.keys())
 
     shuffle(keys)
 
@@ -13,9 +15,11 @@ def split_dataset(filename, proportion):
 
     cut = int(length * proportion)
 
-    infos['train'] = key[:cut]
+    infos['train'] = keys[:cut]
 
-    infos['test'] = key[cut:]
+    infos['test'] = keys[cut:]
+
+    print(filename)
 
     save_pickle(infos, filename)
     
