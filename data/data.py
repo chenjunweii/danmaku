@@ -12,6 +12,8 @@ from .downloader import download_list
 from .label import get_fpsegment, get_score
 from .utils import *
 from .summary import get_summary
+from .preprocess import get_positions
+from .key import split_dataset
 from utils import *
 from fe.fe import fe
 from bilibili.bilibili import GetVideoInfo
@@ -20,9 +22,11 @@ class data(object):
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+        self.epoch = 0
         self.ctx = mx.cpu() if self.device is None else mx.gpu(self.device)
-        self.path['cache'] = os.path.join(self.directory, self.dataset, '{}.h5'.format(self.dataset))
-        self.path['info'] = os.path.join(self.directory, self.dataset, '{}.info'.format(self.dataset))
+        prefix = '{}_fps_{}'.format(self.dataset, self.tfps) if self.tfps >= 1 else self.dataset
+        self.path['cache'] = os.path.join(self.directory, self.dataset, '{}.h5'.format(prefix))
+        self.path['info'] = os.path.join(self.directory, self.dataset, '{}.info'.format(prefix))
         self.path['video'] = os.path.join(self.directory, self.dataset, 'video')
         self.train_list = os.path.join('list', '{}.txt'.format(self.dataset))
         if self.fcheck or not os.path.isfile(self.path['info']):
@@ -50,17 +54,19 @@ class data(object):
                     self.score[mode][self.counter : self.counter + self.batch] 
 
     def load(self, mode):
-        self.sequence[mode] = []; self.nframes[mode] = []; self.score[mode] = []
+        self.sequence[mode] = []; self.nframes[mode] = [];
+        self.score[mode] = []; self.summary[mode] = [];
         with h5py.File(self.path['cache'], 'r') as h5:
             if mode not in self.info:
                 print('[!] Dataset {} have not splitted yet')
-                self.info = split_dataset(self.info)
+                self.info = split_dataset(self.info, filename = self.path['info'])
             for k in self.info[mode]:
                 if 'av' in k or 'ep' in k:
                     self.sequence[mode].append(h5[k]['features'][...])
                     self.nframes[mode].append(self.info[k].nframes)
                     self.score[mode].append(np.expand_dims(self.info[k].score, 1))
                     self.check(self.sequence[mode][-1], self.score[mode][-1])
+                    self.summary[mode].append(np.expand_dims(self.info[k].summary, 0))
 
     def shuffle(self):
         l = list(zip(self.sequence['train'], self.score['train']))
@@ -84,14 +90,13 @@ class data(object):
 
     def generate(self, data_txt, mode):
         print('[*] -----------------------')
-        print('[*] Generate H5 Cache For Dataset {}'.format(self.dataset))
+        print('[*] Generate Original H5 Cache For Dataset {}'.format(self.dataset))
         net = None
         with h5py.File(self.path['cache'], 'a') as h5:
             keys = h5.keys()
             data_list, attr = download_list(data_txt, self.path['video'], self.ext)
-            if attr['country'] == 'cn':
+            if 'country' in attr or 'episodes' in attr:
                 self.info = load_pickle(self.path['info'])
-            #self.info[mode] = data_list
             ndata = len(data_list)
             for i, aid in enumerate(data_list):
                 g = h5.create_group(aid) if aid not in keys else h5[aid]
@@ -102,13 +107,14 @@ class data(object):
                     fn = os.path.join(os.path.join(self.path['video'], aid + self.ext))
                     if self.fextract or int(g['fcomplete'][...]) != 1:
                         print('[*] {} Extracting {}'.format(self.dataset, aid))
-                        net = fe(self.device) if net is None else net
+                        net = fe(self.gpu) if net is None else net
                         features = net.extract(fn)
                         assign(g, 'features', features)
                         assign(g, 'fcomplete', np.ones(1))
+                    print('[*] Feature Extraction for {} is Completed'.format(aid))
                     print('[*] Request Information for {}'.format(aid))
                     extra = dict()
-                    if attr['country'] == 'cn' and not self.info[aid].complete:
+                    if ('country' in attr or 'episodes' in attr):# and not self.info[aid].complete:
                         info = self.info[aid]
                         extra['danmaku'] = info.danmaku
                     else:
@@ -118,12 +124,12 @@ class data(object):
                     extra['duration'] = get_duration(capture = capture)
                     extra['nframes'] = get_nframes(capture = capture)
                     extra['fps'] = get_fps(capture = capture)
-                    print("[*] Compute Boundary")
-                    extra['boundary'] = get_boundary(fn, capture, extra['nframes'], 'hecate')
-                    extra['positions'] = get_positions(extra['nframes'])
-                    extra['fpsegment'] = get_fpsegment(extra['boundary'])
-                    extra['score'] = get_score(**extra)
-                    extra['summary'] = get_summary(**extra)
+                    #print("[*] Compute Boundary")
+                    extra['boundary'] = None#get_boundary(fn, capture, extra['nframes'], 'hecate')
+                    extra['positions'] = None#get_positions(extra['nframes'])
+                    extra['fpsegment'] = None#get_fpsegment(extra['boundary'])
+                    extra['score'] = None#get_score(**extra)
+                    extra['summary'] = None#get_summary(**extra)
                     extra['complete'] = True
                     
                     for k, v in extra.items():

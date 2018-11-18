@@ -1,18 +1,30 @@
 import numpy as np
 import utils
-from kts.kts import vid2shots
+from kts.kts import vid2shots, shot2bound
 from log import log
 from .hecate import hecate
 
-def get_score(danmaku, nframes, fps, **kwargs):
+def get_score(danmaku, nframes = None, nsamples = None, fps = None, subsampled = False, **kwargs):
 
     # score in orignal length
+    
+    if subsampled:
 
-    score = np.zeros([nframes])
+        score = np.zeros([nsamples])
 
-    for t in danmaku:
+        for t in danmaku:
 
-        score[int((t - 0.5) * fps) : int((t + 0.5) * fps)] += 1
+            start = int(t - 1) ; end = int(t + 1)
+
+            score[start : end] += 1
+
+    else:
+
+        score = np.zeros([nframes])
+
+        for t in danmaku:
+
+            score[int((t - 1) * fps) : int((t + 1) * fps)] += 1
 
     return utils.normalize(score)
 
@@ -34,13 +46,15 @@ def get_fpsegment(boundary):
 
     return [int(s[1] - s[0] + 1) for s in boundary]
 
-def get_boundary(f, capture = None, nframes = None, method = None):
+def get_boundary(f, duration = 30, fps = None, Max = None, capture = None, nframes = None, method = None, ):
 
     if method == 'kts':
 
         # f : frames
 
-        sbd, nframes = vid2shots(f, **kwargs)
+        Max = int(len(f) / (duration)) if Max is None else Max
+
+        sbd, nframes = vid2shots(f, Max)
 
         return shot2bound(sbd, nframes)
 

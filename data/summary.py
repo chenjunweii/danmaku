@@ -2,8 +2,8 @@ import math
 import numpy as np
 from .knapsack import knapsack_dp
 
-def get_summary(score, boundary, nframes, fpsegment, positions, proportion = 0.15, **kwargs):
-    
+def get_summary(score, boundary, nframes, fpsegment, positions, proportion = 0.15, subsampled = False, **kwargs):
+
     n_segs = boundary.shape[0] # shot boundary 的數量
     
     frame_scores = np.zeros((nframes), dtype = np.float32) # 生成一個原始長度的 vector

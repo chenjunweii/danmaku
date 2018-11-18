@@ -1,7 +1,7 @@
 import numpy as np
 from bilibili.bilibili import *
 from scipy.stats import zscore
-from utils import normalize
+import utils# import normalize
 
 key = '03fc8eb101b091fb'
 
@@ -13,11 +13,15 @@ def request_danmaku(cid = None, aid = None):
 
     t = [] # second
 
+    c = []
+
     for d in danmaku:
 
         t.append(d.t_video)
 
-    return t # second
+        c.append(d.content)
+
+    return t, c # second
 
 
 if __name__ == '__main__':
