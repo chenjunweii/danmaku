@@ -98,6 +98,9 @@ train key, test key
 - 保留原始版本
 - 加入聲音，用聲音切 kts 可能會更準
 - 音頻分離，兩個人的聲音分別取出，讓他知道有兩個人
+- Object Detection 把物體切割下來，編碼成特徵塞到 Feature 裡
+  - 如果兩個畫面有類似同樣的人事物，應該是同一個 shot
+  - 可以用兩層的方式，第一層 object detection -> crop -> resize -> Feature Extraction
 
 ---
 
@@ -110,4 +113,80 @@ train key, test key
 最後再用 test_subsample 來生成 1fps 的 training data
 
 ****
+
+# Generate
+
+只用來做 Feature Extraction
+
+之後還得用 Sub-sampling
+
+要進行第一次的 Generate : 要把 tfps 設成 -1
+
+並且 force check 要打開。
+
+做完 subsampling 後要開始訓練的時候再把 tfps 設成 1
+
+
+
+如果使用 train.py 出現如下錯誤
+
+兩種 sequence 長度不同
+
+[123124]
+
+[1]
+
+非常有可能是因爲 tfps 沒設定成 1，讀到原始長度版本的 info 檔
+
+# Data List
+
+Data List 的部分也更新成可以讀取 Json 檔了
+
+之後全部都會轉換到 Json 版本
+
+```json
+"type" : "dependent"
+```
+
+當是專輯的時候，就設定爲 dependent
+
+可以分段
+
+```json
+{
+    "dataset" : "oolong",
+    "type" : "dependent",
+    "av-base" : [ 
+
+        {
+            "absolute" : "0 - 50",
+            "av-id" : "av846108",
+            "ep-id" : "ep51558",
+            "episodes" : 50, 
+            "exclude" : []
+        },  
+
+        {   
+            "absolute" : "51 - 100",
+            "av-id" : "av849382",
+            "ep-id" : "ep51608",
+            "episodes" : 50
+        },  
+
+        {   
+            "absolute" : "101 - 200",
+            "av-id" : "av849844",
+            "ep-id" : "ep51659",                                                                                                                                                                                    
+            "episodes" : 100 
+        },  
+    
+        {   
+            "absolute" : "201 - 300",
+            "av-id" : "av857187",
+            "ep-id" : "ep51759",
+            "episodes" : 100 
+        }            
+    ]  
+}
+```
 
