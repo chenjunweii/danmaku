@@ -29,71 +29,70 @@ def conv2Dpad(outputs, shape):
     return outputs
 
 
-class Wave2D(Block):
-    def __init__(self, kernel, stride, dilation, layers, feature, channel, padding, swap_in = True, swap_out = True, arch = '', 
-            auto = False, norm = False, device = None, last = True, flatten = False, reconstruct = False, block = '', encoder = False):
-        super(Wave2D, self).__init__()
-        self.arch = arch
-        self.swap_in = swap_in; self.swap_out = swap_out
-        self.reconstruct = reconstruct
-        self.layers = layers
-        self.kernel = kernel
-        self.stride = stride
-        self.dilation = dilation
-        self.norm = norm
-        self.sequence = []
-        self.encoder = encoder;
-        self.channel = channel
-        if self.norm:
-            self.norms = []
+class WaveNet(Block):
+    def __init__(self, ** kwargs):
+        super(WaveNet, self).__init__()
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.tseq = []
+        self.sseq = []
+        self.oseq = []
+        self.pseq = []
         with self.name_scope():
+            self.pseq.append(nn.Conv2D(8, [1, 1]))
+            self.register_child(self.pseq[-1])
+            self.pseq.append(nn.Conv2D(1, [1, 1]))
+            self.register_child(self.pseq[-1])
             self.activation = nn.Activation('relu')
             self.tanh = nn.Activation('tanh')
             self.sigmoid = nn.Activation('sigmoid')
             self.relu = nn.Activation('relu')
             self.lrelu = nn.LeakyReLU(0.1)
-            if swap_out:
-                self.fc = nn.Dense(1, flatten = False)
+            self.fc = nn.Dense(1, flatten = False)
+            self.fc0 = nn.Dense(128, flatten = False)
             self.dropout = nn.Dropout(0.5)
-            self.add(layers, channel, kernel, stride, padding, dilation)
+            self.add()
 
     def forward(self, inputs):
-        output = rnn2conv(inputs) if self.swap_in else inputs
         outputs = []
-        shapes = []
-        oshapes = []
-        seq = zip(self.sequence, self.norms) if self.norm else self.sequence
-        #print('[*] In Encoder ')
-        for i, s in enumerate(seq):
-            shapes.append(output.shape)
-            oshapes.insert(0, output.shape)
+        output = rnn2conv(self.fc0(inputs))
+        seq = zip(self.tseq, self.sseq, self.oseq)
+        for i, (t, s, o) in enumerate(seq):
             outputs.insert(0, output)
-            o = s[0](s[1](output)) if self.norm else s(output)
-            #o = s[0](rnn2conv(s[1](conv2rnn(output)))) if self.norm else s(output)
-            #sigmoid = self.sigmoid(o)
-            #tanh = self.tanh(o)
-            #current = sigmoid * tanh
-            current = self.lrelu(o)#sigmoid * tanh
-            if 'dense' in self.arch:
-                output = nd.concat(current, output, dim = 1)
-            else:
-                output = current
-        if self.swap_out:
-            output = self.sigmoid(self.fc(self.dropout(conv2rnn(output))))
-        return (output, outputs, oshapes) if self.encoder else output
+            to = self.tanh(t(output))
+            so = self.sigmoid(s(output))
+            co = o(to * so)
+            output = co + output
+        output = sum([out for out in outputs]) + output
+        for p in self.pseq:
+            output = self.lrelu(p(output))
 
-    def add(self, layers, channel, kernel, strides, padding, dilation):
-        assert(len(channel) == self.layers)
+        output = conv2rnn(self.dropout(self.fc(output)))
+
+        return output
+
+    def add(self):
+        assert(len(self.channel) == self.layers)
         for l in range(self.layers):
-            self.sequence.append(nn.Conv2D(channel[l], 
-                kernel_size = kernel[l],
-                strides = strides[l],
-                padding = padding[l],
-                dilation = dilation[l]))
-            self.register_child(self.sequence[-1])
-            if self.norm:
-                self.norms.append(nn.LayerNorm(axis = -1))
-                self.register_child(self.norms[-1])
+            td = 2 ** (l + 1)
+            self.tseq.append(nn.Conv2D(16, 
+                kernel_size = [2, 1],
+                strides = [1, 1],
+                padding = [int(td / 2), 0],
+                dilation = [td, 1]))
+            self.sseq.append(nn.Conv2D(16, 
+                kernel_size = [2, 1],
+                strides = [1, 1],
+                padding = [int(td / 2), 0],
+                dilation = [td, 1]))
+            self.oseq.append(nn.Conv2D(8,
+                kernel_size = [1, 1],
+                strides = [1, 1],
+                padding = [0, 0],
+                dilation = [1, 1]))
+            self.register_child(self.tseq[-1])
+            self.register_child(self.sseq[-1])
+            self.register_child(self.oseq[-1])
 
 
 class Wave2DED(Block):

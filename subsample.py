@@ -11,4 +11,4 @@ parser.add_argument('-fps', type = int, default = 1, help = 'Target FPS')
 
 args = parser.parse_args()
 
-subsample(arg.dataset, args.fps, 'dataset')
+subsample(args.dataset, args.fps, 'dataset')

@@ -12,65 +12,43 @@ def ce(p, g):
 
 def cross_entropy_2(p, g):
 
-    return (p - g) ** 2
+    return nd.abs(p - g)
 
 def mse(p, g):
 
     return (p - g) ** 2
 
-def lstm(nhidden, weight, device, mode, dropout = 0.5):
+def lstm(nhidden, dropout = 0.5):
 
     net = mx.gluon.nn.Sequential()
-
-    if mode != 'train':
-
-        dropout = 0
     
     with net.name_scope():
 
         net.add(mx.gluon.rnn.LSTM(nhidden[0], dropout = dropout))
         
-        net.add(mx.gluon.nn.Dense(1, flatten = False))
+        net.add(mx.gluon.nn.Dense(1, 'sigmoid', flatten = False))
 
     return net
 
-def birnn(nhidden, weight, device, mode, dropout = 0.5):
+def birnn(nhidden, activation = False, dropout = 0.5):
 
     net = mx.gluon.nn.Sequential()
 
-    if mode != 'train':
+    with net.name_scope():
 
-        dropout = 0
-    
-        with net.name_scope():
+        #net.add(mx.gluon.nn.LayerNorm(axis = 2))
+        
+        net.add(mx.gluon.rnn.LSTM(nhidden[0], bidirectional = True, dropout = dropout))
+        
+        #net.add(mx.gluon.nn.LayerNorm(axis = 2))
+        
+        net.add(mx.gluon.nn.Dense(1, flatten = False))
 
-            #net.add(mx.gluon.nn.LayerNorm(axis = 2))
-            
-            net.add(mx.gluon.rnn.LSTM(nhidden[0], bidirectional = True, dropout = dropout))
-                
-            #net.add(mx.gluon.nn.LayerNorm(axis = 2))
-            
-            net.add(mx.gluon.nn.Dense(1, flatten = False, activation = 'linear'))
-            
-            #net.add(mx.gluon.nn.LayerNorm(axis = 2))
-            
-            #net.add(mx.gluon.nn.Activation('relu'))
-
-    else:
-
-        with net.name_scope():
-
-            #net.add(mx.gluon.nn.LayerNorm(axis = 2))
-            
-            net.add(mx.gluon.rnn.LSTM(nhidden[0], bidirectional = True, dropout = dropout))
-            
-            #net.add(mx.gluon.nn.LayerNorm(axis = 2))
-            
-            net.add(mx.gluon.nn.Dense(1, flatten = False))
-            
-            #net.add(mx.gluon.nn.Activation('sigmoid'))
-            
-            #net.add(mx.gluon.nn.LayerNorm(axis = 2))
+        if activation :
+        
+            net.add(mx.gluon.nn.Activation('sigmoid'))
+        
+        #net.add(mx.gluon.nn.LayerNorm(axis = 2))
 
     return net
 
@@ -88,7 +66,7 @@ class BILSTM(Block):
 
             self.h_init = nn.Dense(2 * n_hidden, flatten = False, activation = 'tanh')
         
-            self.fc = nn.Dense(1, flatten = False)
+            self.fc = nn.Dense(1, sigmoid, flatten = False)
 
             self.d = nn.Dropout(.5)
 

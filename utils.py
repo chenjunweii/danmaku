@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 from log import log
 """
 import data.preprocess #.get_positions
@@ -43,4 +44,4 @@ def get_capture(fn = None):
 
 def normalize(data):
 
-    return (data - min(data)) / (max(data) - min(data))
+    return (data - max(min(data), 1)) / (max(data) - max(min(data), 1))

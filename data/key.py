@@ -19,8 +19,6 @@ def split_dataset(f, filename = None, proportion = 0.8):
 
     infos['test'] = keys[cut:]
 
-    print(filename)
-
     save_pickle(infos, filename)
     
     print('[*] Add Split Keys into {}'.format(filename))

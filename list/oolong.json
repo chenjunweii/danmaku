@@ -1,0 +1,37 @@
+{
+	"dataset" : "oolong",
+	"type" : "dependent",
+	"av-base" : [
+
+		{	
+			"absolute" : "0 - 50",
+			"av-id" : "av846108",
+			"ep-id" : "ep51558",
+			"episodes" : 50,
+			"exclude" : []
+		},
+
+		{
+			"absolute" : "51 - 100",
+			"av-id" : "av849382",
+			"ep-id" : "ep51608",
+			"episodes" : 50
+		},
+
+		{
+			"absolute" : "101 - 200",
+			"av-id" : "av849844",
+			"ep-id" : "ep51659",
+			"episodes" : 100
+		},
+            
+		{
+			"absolute" : "201 - 300",
+			"av-id" : "av857187",
+			"ep-id" : "ep51759",
+			"episodes" : 100
+		}
+		
+	]
+
+}

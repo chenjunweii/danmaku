@@ -49,37 +49,45 @@ class init(object):
 
         lr_scheduler = mx.lr_scheduler.FactorScheduler(self.lr_decay_step, self.lr_decay_rate)
 
-        if self.arch == 'gan':
+        if 'gan' in self.arch:
 
-            G_optimizer = 'adam'
+            G_optimizer = 'rmsprop'
                 
             G_options = {'learning_rate': self.lr,
                        'lr_scheduler' : lr_scheduler,
-                       'clip_gradient': 0.5,
+                       'clip_gradient': 0.01,
                        #'momentum' : 0.9,
-                       'wd' : 0.001}
+                       'wd' : 0.0001}
             
-            D_optimizer = 'adam'
+            D_optimizer = 'rmsprop'
             
             D_options = {'learning_rate': self.lr,
                        'lr_scheduler' : lr_scheduler,
-                       'clip_gradient': 0.5,
+                       'clip_gradient': 0.01,
                        #'momentum' : 0.9,
-                       'wd' : 0.001}
+                       'wd' : 0.0001}
 
             self.net.set_optimizer(G_optimizer, G_options, D_optimizer, D_options)
         
         else:
 
             optimizer = 'adam'
+            
+            options = {'learning_rate': self.lr,
+                       'lr_scheduler' : lr_scheduler,
+                       'clip_gradient': 0.01,
+                       #'momentum' : 0.9,
+                       'wd' : 0.0001}
         
-            trainer = mx.gluon.Trainer(self.net.collect_params(), optimizer, options)
+            self.trainer = mx.gluon.Trainer(self.net.collect_params(), optimizer, options)
 
         print ('[*] Start Training ...')
 
         print('[*] Evaluation Metric : {}'.format(self.metric.title()))
 
         self.evaluater = evaluater(**vars(self))
+
+        setattr(self.data, 'evaluater', self.evaluater)
 
 
         

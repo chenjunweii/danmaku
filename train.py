@@ -13,6 +13,8 @@ parser.add_argument('-g', '--gpu', type = int, default = 0, help = 'GPU ID')
 
 parser.add_argument('-a', '--arch', type = str, default = None, help = 'Network Architecture')
 
+#parser.add_argument('-a', '--arch', type = str, default = None, help = 'Network Architecture')
+
 args = parser.parse_args()
 
 for k, v in vars(args).items():

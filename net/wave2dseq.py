@@ -29,7 +29,7 @@ def conv2Dpad(outputs, shape):
     return outputs
 
 
-class Wave2D(Block):
+class Wave2DSEQ(Block):
     def __init__(self, kernel, stride, dilation, layers, feature, channel, padding, swap_in = True, swap_out = True, arch = '', 
             auto = False, norm = False, device = None, last = True, flatten = False, reconstruct = False, block = '', encoder = False):
         super(Wave2D, self).__init__()

@@ -26,7 +26,7 @@ def loss_mask(batch, olen):
     mask = np.zeros([batch, max(olen), 1]) # batch major
 
     active = sum(olen)
-    
+
     for b in range(batch):
         
         mask[b, : olen[b] - 1] = 1
@@ -59,7 +59,7 @@ def preprocess_list(seq_list, scr_list, bd_list = None, sr = sr):
 
 def get_positions(nframes, sr = sr):
 
-    n = nframes - nframes % sr 
+    n = nframes - nframes % sr
 
     return np.array([i * sr for i in range(math.ceil(nframes / sr))])
 

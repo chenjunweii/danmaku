@@ -1,10 +1,10 @@
+# av-base : av846108
+# ep-base : ep51558
 # episodes : 50
 
-av846108
-#av849382
-# bangumi
-
-ep51558
+# av-base : av849382
+# ep-base : ep51608
+# episodes : 50
 
 # exclude
 

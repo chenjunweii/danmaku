@@ -1,7 +1,7 @@
 import os
 import cv2
 import numpy as np
-from utils import get_fps
+from utils import get_fps, get_capture, get_nframes
 
 def write_video(frames, filename, fps):
 
@@ -28,9 +28,39 @@ def concat_video_shot(filename, shots):
 
     pass
 
-def generate_summary_video(filename, shots):
+def generate_summary_video(fin, fout, summary):
 
-    pass
+    capture = get_capture(fin)
+
+    nframes = get_nframes(capture = capture)
+
+    fps = get_fps(capture = capture)
+
+    assert(nframes == len(summary))
+
+    frames = []
+
+    i = 0
+
+    summary = np.array(summary) if not isinstance(summary, np.ndarray) else summary
+
+    kf = np.where(summary == 1)[0] # key frames
+
+    while True:
+
+        ret, frame = capture.read()
+        
+        if frame is None:
+
+            break
+        
+        if i in kf:
+
+            frames.append(frame)
+
+        i += 1
+
+    write_video(frames, fout, fps)
 
 def split_video_shot(filename, boundary):
 

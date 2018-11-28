@@ -6,7 +6,8 @@ import numpy as np
 
 def load_json(filename):
     with open(filename, 'r') as f:
-        return yaml.safe_load(f)
+        #return yaml.safe_load(f)
+        return json.load(f)
 
 def save_json(dictionary, filename):
     with open(filename, 'w') as f:

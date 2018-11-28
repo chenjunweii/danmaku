@@ -3,6 +3,7 @@ dataset/
 cache/
 Danmaku
 *.bak
+*.flv
 __pycache__
 kts
 custom
@@ -12,3 +13,9 @@ adam_opt_mx.py
 *.mp4
 *.mkv
 output
+test*
+log*
+log/
+figure/
+*.png
+*.jpg

@@ -5,9 +5,9 @@ def list2rnn(inputs):
     b, f = inputs[0].shape
     return nd.concat(*inputs, dim = 1).reshape(-1, b, f)
 
-class desrnn(Block):
+class desrnnseq(Block):
     def __init__(self, hidden, stride = 2, layers = 1):
-        super(desrnn, self).__init__()
+        super(desrnnseq, self).__init__()
         self.desrnns = []
         self.norms = []
         self.fcs = []
@@ -23,7 +23,6 @@ class desrnn(Block):
     def forward(self, inputs, state = None, length = None):
         t, b, f = inputs.shape
         c = nd.zeros([b, self.hidden], ctx = inputs.context)
-        h = nd.zeros([b, self.hidden], ctx = inputs.context)
         state = [c]#, h]
         outputs = inputs#self.norms[0](inputs)
         for s in state:
@@ -44,32 +43,32 @@ class desrnn(Block):
                     else:
                         start = anchor; end = anchor + self.stride # dilation 
                     output, state = self.desrnns[l](outputs[start:end].mean(0), state)
-                currents.append(output + oupt)
+                currents.append(output)
             outputs = list2rnn(currents[:length])
             #outputs = self.norms[l+1](outputs if l != self.layers - 1 else outputs
         return outputs
 
-class endsrnn(Block):
+class endsrnnseq(Block):
     def __init__(self):
-        super(endsrnn, self).__init__()
-        self.en = srnn(256, stride = 2, layers = 1)
-        self.de = desrnn(256, stride = 2, layers = 1)
-        self.fc = nn.Dense(1, 'sigmoid', flatten = False)
+        super(endsrnnseq, self).__init__()
+        self.en = srnnseq(256, stride = 2, layers = 2)
+        self.de = desrnnseq(256, stride = 2, layers = 2)
+        #self.fc = nn.Dense(1, 'sigmoid', flatten = False)
     def forward(self, inputs, state = None):
         o = self.en(inputs)
         #o = self.de(o, None)
         o = self.de(o, None, len(inputs))
-        o = self.fc(o)
+        #o = self.fc(o)
         return o
 
-class srnn(Block):
+class srnnseq(Block):
     def __init__(self, hidden, stride = 2, layers = 1):
-        super(srnn, self).__init__()
+        super(srnnseq, self).__init__()
         self.srnns = []
         self.norms = []
         with self.name_scope():
             for l in range(layers):
-                self.srnns.append(rnn.GRUCell(hidden))
+                self.srnns.append(rnn.GRU(hidden))
                 #self.norms.append(nn.LayerNorm(axis = 2))
                 self.register_child(self.srnns[-1])
                 #self.register_child(self.norms[-1])
@@ -86,18 +85,17 @@ class srnn(Block):
             s[0].detach();# s[1].detach()
         for l in range(self.layers):
             currents = []
+            outputs = self.srnns[l](outputs)
             for _t, x in enumerate(outputs):
-                output, state = self.srnns[l](x, state)
                 if _t % self.stride == 0:
-                    currents.append(output)
+                    currents.append(x)
             outputs = list2rnn(currents)
-            #outputs = self.norms[l+1](outputs) if l != self.layers - 1 else outputs
         return outputs 
 
 if __name__ == '__main__':
     
-    s = srnn(100, 2, 3)
-    ds = desrnn(100, 2, 3)
+    s = srnnseq(100, 2, 3)
+    ds = desrnnseq(100, 2, 3)
 
     s.collect_params().initialize()
    
@@ -111,4 +109,6 @@ if __name__ == '__main__':
 
     print('compressed : ', o.shape)
     
-    print('reconstruct : ', do.shape)
+    do = ds(o, None, len(inputs))
+
+    print('do : ', do.shape)

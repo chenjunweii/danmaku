@@ -1,5 +1,6 @@
 import os
 import shlex, subprocess
+from .utils import load_json
 
 # https://github.com/kamikat/bilibili-get
 
@@ -35,7 +36,44 @@ def download(aid, directory = '.', DedeUserID = None, DedeUserID__ckMd5 = None, 
 
         subprocess.call(command)
 
+
+def next_ep(av, offset):
+
+    t = av[:2]
+
+    ids = av[2:]
+
+    return t + str(int(ids) + offset)
+
 def read_list(fn):
+
+    json = load_json(fn)
+
+    avbase = dict()
+
+    epbase = []
+
+    for av in json['av-base']:
+
+        epids = []
+
+        for e in range(av['episodes']):
+
+            epids.append(next_ep(av['ep-id'], e))
+        
+        if 'exclude' in av:
+
+            for ex in av['exclude']:
+
+                epids.remove(ex)
+
+                epids.append(next_ep(epids[-1], 1))
+
+        avbase[av['av-id']] = epids
+
+    return avbase, json
+
+def read_list_v(fn):
 
     attribute = dict()
 
@@ -70,6 +108,16 @@ def read_list(fn):
                 elif 'exclude' in c:
 
                     attribute['exclude'] = []
+
+                elif 'av-base' in c:
+
+                    if 'av-base' not in attribute:
+
+                        attribute['av-base'] = []
+
+                    #base = c.split(':')[-1
+
+                    #attribute['av-base'].append(base)
 
                 else:
 
@@ -129,30 +177,38 @@ def read_list(fn):
 
 def download_list(txt, directory, ext = '.mp4', **cookie):
 
-    ids, kids, attr = read_list(txt)
+    avbases, json = read_list(txt)
 
     if not os.path.isdir(directory):
 
         os.makedirs(directory)
 
-    print('[*] Download From List txt, Total Videos : {}'.format(len(ids)))
+    if json['type'] == 'dependent':
 
-    for v in ids:
+        total = sum([len(v) for k, v in avbases.items()])
+        
+        print('[*] Download From Dataset Json, Total Videos : {}'.format(total))
 
-        if not os.path.isfile(os.path.join(directory, v + ext)):   
+        for k, v in avbases.items():
 
-            download(v, directory, **cookie)
+            for ep in v:
+
+                if not os.path.isfile(os.path.join(directory, ep + ext)):
+
+                    download(ep, directory, **cookie)
 
 
     # check if directory contain all videos if using episodesa
 
-    if 'episodes' in attr:
+    if json['type'] == 'dependent':
 
-        count = len(os.listdir(directory))
+        pass
 
-        assert(count >= attr['episodes'])
+        #count = len(os.listdir(directory))
 
-    return ids, attr
+        #assert(count >= attr['episodes'])
+
+    return avbases, json
     
 if __name__ == '__main__':
 
